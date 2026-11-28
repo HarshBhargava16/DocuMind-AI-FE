@@ -21,38 +21,39 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
 
-    const { email, password } = formData;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (!email || !password) {
-      return setError("Enter your email and password to continue.");
-    }
+  if (!formData.email || !formData.password) {
+    setError("Please enter email and password");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  setLoading(true);
 
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+  try {
+    const result = await signIn("credentials", {
+      email: formData.email,
+      password: formData.password,
+      redirect: false,
+    });
 
-      if (!result || result.error) {
-        setError("Invalid email or password. Please try again.");
-        return;
-      }
-
-      router.replace("/dashboard");
+    if (result?.ok) {
+      router.replace("/workspace");
       router.refresh();
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    setError("Invalid email or password");
+  } catch (error) {
+    console.error("Login error:", error);
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const inputClass =
     "w-full rounded-lg border border-[#E2E8F0] bg-white px-4 py-3 text-[15px] text-[#111827] placeholder:text-[#94A3B8] outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15";
@@ -60,10 +61,7 @@ export default function LoginPage() {
 
   return (
     <main className="grid h-dvh overflow-hidden bg-white font-sans text-[#111827] lg:grid-cols-[1.05fr_1fr]">
-      <AuthShowcase
-        heading="Your Documents."
-        accent="Smarter Conversations."
-      />
+      <AuthShowcase heading="Your Documents." accent="Smarter Conversations." />
 
       <section className="flex items-center justify-center px-5 py-10 sm:px-8">
         <div className="w-full max-w-[26rem]">
@@ -131,7 +129,9 @@ export default function LoginPage() {
               disabled={loading}
               className="h-11 w-full bg-[#2563EB] text-[15px] font-semibold hover:bg-[#1D4ED8]"
             >
-              {loading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+              {loading && (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              )}
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
